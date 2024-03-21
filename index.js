@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:3000', 'https://nft-marketplace-three-mu.vercel.app'];
+const allowedOrigins = ['http://localhost:3000', 'https://nft-marketplace-three-mu.vercel.app', 'https://nft-marketplace-bje3e6i89-pluswhale.vercel.app'];
 
 app.use(cors({
   origin: function (origin, callback) {
