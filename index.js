@@ -6,6 +6,18 @@ const models = require('./models');
 
 app.use(express.json());
 
+const allowedOrigins = ['http://localhost:3000', 'https://anotherdomain.com'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed for this origin'));
+    }
+  }
+}));
+
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
