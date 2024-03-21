@@ -1,6 +1,5 @@
 'use strict';
 
-const { password } = require('pg/lib/defaults');
 
 const demoUsers = [
   {

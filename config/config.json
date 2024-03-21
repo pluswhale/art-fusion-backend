@@ -1,23 +1,41 @@
 {
   "development": {
-    "username": "postgres",
-    "password": 123,
-    "database": "art_fusion",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "username": "u4pbo51vc8mbq8",
+    "password": "p9870500bfa50543270c5b6beefe1df3ae5c048a4eb61c1b4080babf34caa026d",
+    "database": "d3lm1h87l7c40j",
+    "host": "cdgn4ufq38ipd0.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   },
   "test": {
-    "username": "postgres",
-    "password": 123,
-    "database": "art_fusion",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "username": "u4pbo51vc8mbq8",
+    "password": "p9870500bfa50543270c5b6beefe1df3ae5c048a4eb61c1b4080babf34caa026d",
+    "database": "d3lm1h87l7c40j",
+    "host": "cdgn4ufq38ipd0.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   },
   "production": {
-    "username": "postgres",
-    "password": 123,
-    "database": "art_fusion",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "username": "u4pbo51vc8mbq8",
+    "password": "p9870500bfa50543270c5b6beefe1df3ae5c048a4eb61c1b4080babf34caa026d",
+    "database": "d3lm1h87l7c40j",
+    "host": "cdgn4ufq38ipd0.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   }
 }
