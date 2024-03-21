@@ -3,6 +3,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 const bcrypt = require('bcrypt');
 const models = require('./models');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { where } = require('sequelize');
 
@@ -10,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:3000', 'https://anotherdomain.com'];
+const allowedOrigins = ['http://localhost:3000', 'https://nft-marketplace-three-mu.vercel.app'];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -56,17 +57,22 @@ app.get('/users', async (req, res) => {
 
 // Registration Route
 app.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+    const { email, password } = req.body;
+    
+    console.log('req', req.body);
 
   // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
-        const isExists = models.User.findOne({ where: { email } });
-        
-        if (isExists) return res.status(400).send({ message: 'User already exists' });
-        
+        const isExists = await models.User.findOne({ where: { email } });
+
+        if (isExists) {
+        // If a user is found, send a response immediately and stop further execution
+        return res.status(400).send({ message: 'User already exists' });
+        }
+
         // Create new user
         const newUser = await models.User.create({
             email,
@@ -87,16 +93,19 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await models.User.findOne({ where: { email } });
-    if (!user) return res.status(400).send('User not found');
+      const user = await models.User.findOne({ where: { email } });
+      
+    if (!user) return res.status(400).send({message: 'User not found'});
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).send('Invalid password');
 
     // Create and assign a token
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '24h' });
+      
+      console.log('token', token);
 
-    res.header('auth-token', token).send(token);
+    res.header('auth-token', token).send({token, user});
   } catch (error) {
     res.status(400).send(error.message);
   }
