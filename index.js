@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3001;
+const models = require('./models');
+
 
 app.use(express.json());
 
@@ -24,6 +26,15 @@ app.post('/user/:userId/items', async (req, res) => {
     res.json(newItem);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+app.get('/users', async (req, res) => {
+  try {
+    const allUsers = await models.User.findAll(); // Use Sequelize's findAll method
+    res.json(allUsers);
+  } catch (error) {
+    res.status(400).send(error.message); // It's helpful to send the error message back for debugging
   }
 });
 
