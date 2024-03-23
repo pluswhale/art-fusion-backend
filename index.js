@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 const bcrypt = require('bcrypt');
@@ -6,10 +7,86 @@ const models = require('./models');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { where } = require('sequelize');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session = require('express-session');
+
+const hostBackendUrl = 'https://nft-marketplace-three-mu.vercel.app'
+const localBackendUrl = 'http://localhost:3000'
+
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'your_session_secret', // Use a secret key for your session
+  resave: false, // Avoid resaving sessions that haven't changed
+  saveUninitialized: true, // Save uninitialized sessions (sessions with no data)
+  cookie: {
+    secure: false, // Set to true if using https
+    maxAge: 1000 * 60 * 60 * 24, // Set cookie expiry, e.g., 24 hours
+  },
+};
+
+app.use(session(sessionConfig));
+
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/auth/google/callback",
+  accessType: 'offline', 
+  prompt: 'consent' 
+},
+  async (accessToken, refreshToken, profile, cb) => {
+    console.log('accessToken', accessToken);
+    console.log('refreshToken', refreshToken);
+  try {
+    
+    const [user, created] = await models.User.findOrCreate({
+      where: { googleId: profile.id },
+      defaults: {
+        // Add other fields you want to populate by default on creation
+        email: profile.emails[0].value,
+        // Any other default fields...
+      }
+    });
+
+    if (refreshToken) {
+      // Here, save or update the refreshToken in your DB associated with the user
+      // For example:
+      await models.User.update({ refreshToken: refreshToken }, {
+        where: { googleId: profile.id }
+      });
+    }
+
+    // Assuming `user` is the user instance from your DB and has an `id`
+    // Generate a JWT token for the user
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '24h' });
+
+    // Attach the token to the user object
+    // Make sure to not override the entire user object, just add the token property
+    user.dataValues.token = token;
+
+    return cb(null, user);
+  } catch (error) {
+    return cb(error, null);
+  }
+}));
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 app.use(express.json());
+app.use(passport.initialize());
+app.use(passport.session()); // This enables login session support
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  // Find the user by ID and call done with it
+  models.User.findByPk(id).then((user) => {
+    done(null, user);
+  });
+});
 
 const allowedOrigins = ['http://localhost:3000', 'https://nft-marketplace-three-mu.vercel.app', 'https://nft-marketplace-bje3e6i89-pluswhale.vercel.app'];
 
@@ -22,10 +99,6 @@ app.use(cors({
     }
   }
 }));
-
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 app.post('/user/:userId/items', async (req, res) => {
   const { userId } = req.params;
@@ -59,8 +132,6 @@ app.get('/users', async (req, res) => {
 app.post('/register', async (req, res) => {
     const { email, password } = req.body;
     
-    console.log('req', req.body);
-
   // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -98,13 +169,11 @@ app.post('/login', async (req, res) => {
     if (!user) return res.status(400).send({message: 'User not found'});
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(400).send('Invalid password');
+    if (!validPassword) return res.status(400).send({message: 'The bad credentials, try again.'});
 
     // Create and assign a token
       const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '24h' });
       
-      console.log('token', token);
-
     res.header('auth-token', token).send({token, user});
   } catch (error) {
     res.status(400).send(error.message);
@@ -128,15 +197,32 @@ const verifyToken = (req, res, next) => {
 // Example of a protected route
 app.get('/user-profile', verifyToken, async (req, res) => {
   try {
-    // Assuming a method to find user by ID exists
+
     const user = await models.User.findByPk(req.user.id);
-    // Exclude password and other sensitive info from the result
+
     res.json({ email: user.email, id: user.id });
   } catch (error) {
     res.status(400).send(error.message);
   }
 });
 
+// Google authorization
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication, redirect home.
+     res.redirect(`${process.env.NODE_ENV === 'development' ? localBackendUrl : hostBackendUrl}/auth-success?token=${req.user.dataValues.token}`);
+  });
+
+app.post('/token/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(401).json({ message: 'Refresh Token is required' });
+
+  // Verify refresh token, find associated user, and issue a new access token
+  // This is a simplified example. You'll need to implement token verification and lookup logic
+});
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
