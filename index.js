@@ -195,16 +195,68 @@ const verifyToken = (req, res, next) => {
 };
 
 // Example of a protected route
-app.get('/user-profile', verifyToken, async (req, res) => {
+app.post('/me', async (req, res) => {
   try {
+    // Extract email from request body
+    const { email } = req.body;
 
-    const user = await models.User.findByPk(req.user.id);
+    // Validate the email is provided
+    if (!email) {
+      return res.status(400).send('Email is required');
+    }
 
-    res.json({ email: user.email, id: user.id });
+    // Find the user by email
+    const user = await models.User.findOne({ where: { email: email } });
+
+    // If no user found, return an appropriate response
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    res.json({ user });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 });
+
+app.post('/store/user-art', async (req, res) => {
+  const { userId, itemId, name, description, cid, minted } = req.body;
+  
+  try {
+    const newUserNFT = await models.UserNFT.create({
+      userId,
+      itemId,
+      name,
+      description,
+      cid,
+      minted
+    });
+    res.json(newUserNFT);
+  } catch (error) {
+    console.error('Error creating UserNFT:', error);
+    res.status(500).send(error.message);
+  }
+});
+
+app.delete('/destroy/user-art/:cid', async (req, res) => {
+  const { cid } = req.params;
+  
+  try {
+    const result = await models.UserNFT.destroy({
+      where: { cid }
+    });
+    
+    if (result === 0) {
+      return res.status(404).send('No UserNFT found with the specified CID.');
+    }
+    
+    res.send({message: 'UserNFT deleted successfully.'});
+  } catch (error) {
+    console.error('Error deleting UserNFT by CID:', error);
+    res.status(500).send(error.message);
+  }
+});
+
 
 // Google authorization
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
