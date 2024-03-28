@@ -100,22 +100,27 @@ app.use(cors({
   }
 }));
 
-app.post('/user/:userId/items', async (req, res) => {
+
+app.get('/user/:userId/items', async (req, res) => {
   const { userId } = req.params;
-  const { itemId, title, description, imageUrl } = req.body;
+
+  console.log(userId, 'userId');
 
   try {
-    const newItem = await models.UserItem.create({
-      userId,
-      itemId,
-      title,
-      description,
-      imageUrl
+    const userItems = await models.UserNFT.findAll({
+      where: {
+        userId: userId 
+      }
     });
 
-    res.json(newItem);
+    if (!userItems || userItems.length === 0) {
+      return res.status(404).send({ message: 'User has no items.' });
+    }
+   
+    res.json({userItems}); 
   } catch (error) {
-    res.status(400).send(error);
+    console.error("Failed to fetch user items:", error);
+    res.status(500).send({ message: "An error occurred while fetching user items." });
   }
 });
 
