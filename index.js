@@ -225,7 +225,7 @@ app.post('/me', async (req, res) => {
 });
 
 app.post('/store/user-art', async (req, res) => {
-  const { userId, itemId, name, description, cid, minted } = req.body;
+  const { userId, itemId, name, description, cid, minted, resolution } = req.body;
   
   try {
     const newUserNFT = await models.UserNFT.create({
@@ -234,7 +234,8 @@ app.post('/store/user-art', async (req, res) => {
       name,
       description,
       cid,
-      minted
+      minted,
+      resolution,
     });
     res.json(newUserNFT);
   } catch (error) {
