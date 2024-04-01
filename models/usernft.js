@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       UserNFT.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+      UserNFT.belongsTo(models.CollectionTheme, { foreignKey: 'themeId', as: 'theme' });
     }
   }
   UserNFT.init({
@@ -21,6 +22,13 @@ module.exports = (sequelize, DataTypes) => {
     cid: DataTypes.STRING,
     minted: DataTypes.BOOLEAN,
     resolution: DataTypes.STRING,
+    themeId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'CollectionTheme', // Name of the CollectionTheme model
+        key: 'id', // Key in CollectionTheme model that UserNFT references
+      },
+    }
   }, {
     sequelize,
     modelName: 'UserNFT',

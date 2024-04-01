@@ -239,7 +239,7 @@ app.post('/me', async (req, res) => {
 });
 
 app.post('/store/user-art', async (req, res) => {
-  const { userId, itemId, name, description, cid, minted, resolution } = req.body;
+  const { userId, itemId, name, description, cid, minted, resolution, collectionThemeId } = req.body;
   
   try {
     const newUserNFT = await models.UserNFT.create({
@@ -250,6 +250,7 @@ app.post('/store/user-art', async (req, res) => {
       cid,
       minted,
       resolution,
+      themeId: collectionThemeId
     });
     res.json(newUserNFT);
   } catch (error) {
@@ -257,6 +258,33 @@ app.post('/store/user-art', async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+
+app.post('/create/collection-theme', async (req, res) => {
+  const { name } = req.body;
+  const theme = await models.CollectionTheme.findOrCreate({
+    where: { name }, // Your dynamic theme name
+  });
+  
+  if (!theme) {
+     res.status(400).send({message: 'Cant create collection theme'});
+  }
+  
+  return res.status(200).send({collectionTheme: theme})
+})
+
+app.get('/fetch/collection-theme/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+     res.status(400).send({message: 'Cant create collection theme'});
+  }
+
+  const theme = await models.CollectionTheme.findOne({
+    where: { id }, 
+  });
+    
+  return res.status(200).send({collectionTheme: theme})
+})
 
 app.delete('/destroy/user-art/:cid', async (req, res) => {
   const { cid } = req.params;
