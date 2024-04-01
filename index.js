@@ -104,20 +104,34 @@ app.use(cors({
 app.get('/user/:userId/items', async (req, res) => {
   const { userId } = req.params;
 
-  console.log(userId, 'userId');
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
 
   try {
-    const userItems = await models.UserNFT.findAll({
+    const offset = (page - 1) * pageSize;
+
+    const { count, rows } = await models.UserNFT.findAndCountAll({
       where: {
-        userId: userId 
-      }
+        userId: userId
+      },
+      limit: pageSize,
+      offset: offset,
+      order: [['createdAt', 'DESC']]
     });
 
-    if (!userItems || userItems.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.status(404).send({ message: 'User has no items.' });
     }
-   
-    res.json({userItems}); 
+
+    const totalPages = Math.ceil(count / pageSize);
+
+    res.json({
+      totalPages,
+      currentPage: page,
+      pageSize,
+      totalCount: count,
+      items: rows
+    });
   } catch (error) {
     console.error("Failed to fetch user items:", error);
     res.status(500).send({ message: "An error occurred while fetching user items." });

@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     description: DataTypes.STRING,
     cid: DataTypes.STRING,
-    minted: DataTypes.BOOLEAN
+    minted: DataTypes.BOOLEAN,
+    resolution: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'UserNFT',
