@@ -28,7 +28,10 @@ module.exports = (sequelize, DataTypes) => {
         model: 'CollectionTheme', // Name of the CollectionTheme model
         key: 'id', // Key in CollectionTheme model that UserNFT references
       },
-    }
+    },
+    imageUrl: DataTypes.STRING,
+    metadataUrl: DataTypes.STRING,
+            
   }, {
     sequelize,
     modelName: 'UserNFT',
