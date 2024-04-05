@@ -22,9 +22,9 @@ async function storeUserArt(req, res) {
       cid,
       minted,
       resolution,
-    themeId: collectionThemeId,
-    imageUrl,
-    metadataUrl
+      themeId: collectionThemeId,
+      imageUrl,
+      metadataUrl
     });
     res.json(newUserNFT);
   } catch (error) {

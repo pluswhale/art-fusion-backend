@@ -9,7 +9,10 @@ passport.use(new GoogleStrategy({
     callbackURL: "/auth/google/callback",
     accessType: 'offline',
     prompt: 'consent'
-  },
+},
+  
+  
+  
   async (accessToken, refreshToken, profile, cb) => {
     try {
       const [user, created] = await models.User.findOrCreate({
